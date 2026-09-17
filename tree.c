@@ -396,6 +396,13 @@ if (!strcmp("--size", argv[i])) {
     j = strlen(argv[i])-1;
     break;
 }
+if ((arg = long_arg(argv, i, &j, &n, "--filter")) != NULL) {
+  if (pattern >= maxpattern-1)
+    patterns = xrealloc(patterns, sizeof(char *) * (size_t)(maxpattern += 10));
+  patterns[pattern++] = arg;
+  patterns[pattern] = NULL;
+  break;
+}
 	    if (!strcmp("--inodes",argv[i])) {
 	      j = strlen(argv[i])-1;
 	      flag.inode = (opt_toggle? !flag.inode : true);
@@ -1029,6 +1036,11 @@ struct _info **read_dir(char *dir, ssize_t *n, int infotop)
 
     info = getinfo(ent->d_name, path);
     if (info) {
+      /* Update stats for each scanned item */
+      if (flag.stat) {
+        update_stats(infotop, info->isdir);
+      }
+
       if (flag.showinfo && (com = infocheck(path, ent->d_name, infotop, info->isdir))) {
         for(i = 0; com->desc[i] != NULL; i++);
         info->comment = xmalloc(sizeof(char *) * (i+1));
