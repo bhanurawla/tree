@@ -81,6 +81,7 @@ void emit_tree(char **dirname, bool needfulltree)
     if (flag.H) htmldirlen = strlen(dirname[i]);
 
     if ((n = lstat(dirname[i],&st)) >= 0) {
+      if (flag.stat) update_stats(0, true);
       saveino(st.st_ino, st.st_dev);
       info = stat2info(&st);
       info->name = ""; //dirname[i];
@@ -163,6 +164,7 @@ struct totals listdir(char *dirname, struct _info **dir, int lev, dev_t dev, boo
   path = xmalloc(sizeof(char) * pathlen);
 
   for (;*dir != NULL; dir++) {
+    if (flag.stat) update_stats(lev, (*dir)->isdir);
     lc.printinfo(dirname, *dir, lev);
 
     namelen = strlen((*dir)->name) + 1;

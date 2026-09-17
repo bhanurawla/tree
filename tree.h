@@ -97,6 +97,8 @@ struct Flags {
   bool reverse, fflinks, htmloffset, acl, selinux, condense_singletons;
   bool colorize, ansilines, linktargetcolor, remove_space;
   int flimit, compress_indent;
+  bool stat;
+  bool size;
 };
 
 struct _info {
@@ -256,6 +258,7 @@ void null_outtro(void);
 void null_close(struct _info *file, int level, int needcomma);
 void emit_tree(char **dirname, bool needfulltree);
 struct totals listdir(char *dirname, struct _info **dir, int lev, dev_t dev, bool hasfulltree);
+void update_stats(int depth, bool is_dir);
 
 /* tree.c */
 void setoutput(const char *filename);

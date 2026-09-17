@@ -17,6 +17,28 @@
  */
 
 #include "tree.h"
+extern struct Flags flag;
+static int stat_dirs = 0;
+static int stat_files = 0;
+static int max_depth = 0;
+
+void update_stats(int depth, bool is_dir) {
+    if (is_dir) {
+        stat_dirs++;
+    } else {
+        stat_files++;
+    }
+    if (depth > max_depth) {
+        max_depth = depth;
+    }
+}
+
+void print_stat_summary(void) {
+  if (flag.stat) {
+        printf("\n[STAT SUMMARY] Directories: %d | Files: %d | Max Depth: %d\n",
+               stat_dirs, stat_files, max_depth);
+    }
+}
 
 char *version = "$Version: $ tree v2.3.2 %s 1996 - 2026 by Steve Baker, Thomas Moore, Francesc Rocher, Florian Sesser, Kyosuke Tokoro $";
 char *hversion= "\t\t tree v2.3.2 %s 1996 - 2026 by Steve Baker and Thomas Moore <br>\n"
@@ -362,6 +384,18 @@ int main(int argc, char **argv)
 	      showversion = true;
 	      break;
 	    }
+      if (!strcmp("--stat", argv[i])) {
+        flag.stat = true;
+        j = strlen(argv[i])-1;
+        break;
+}
+
+if (!strcmp("--size", argv[i])) {
+  flag.size = true;
+  flag.s = true;  /* Automatically enables standard size reporting in tree */
+    j = strlen(argv[i])-1;
+    break;
+}
 	    if (!strcmp("--inodes",argv[i])) {
 	      j = strlen(argv[i])-1;
 	      flag.inode = (opt_toggle? !flag.inode : true);
@@ -622,8 +656,10 @@ int main(int argc, char **argv)
   needfulltree = flag.du || flag.prune || flag.matchdirs || flag.fromfile || flag.condense_singletons;
 
   emit_tree(dirname, needfulltree);
+  print_stat_summary();
 
   if (outfilename != NULL) fclose(outfile);
+  
 
   return errors ? 2 : 0;
 }
@@ -971,6 +1007,7 @@ struct _info **read_dir(char *dir, ssize_t *n, int infotop)
   DIR *d;
   size_t ne, p = 0, i;
   bool es = (dir[strlen(dir)-1] == '/');
+  fprintf(stderr, "[DEBUG] Processing directory: %s\n", dir);
 
   if (path == NULL) {
     path=xmalloc(pathsize = strlen(dir)+PATH_MAX);
@@ -993,10 +1030,10 @@ struct _info **read_dir(char *dir, ssize_t *n, int infotop)
     info = getinfo(ent->d_name, path);
     if (info) {
       if (flag.showinfo && (com = infocheck(path, ent->d_name, infotop, info->isdir))) {
-	for(i = 0; com->desc[i] != NULL; i++);
-	info->comment = xmalloc(sizeof(char *) * (i+1));
-	for(i = 0; com->desc[i] != NULL; i++) info->comment[i] = scopy(com->desc[i]);
-	info->comment[i] = NULL;
+        for(i = 0; com->desc[i] != NULL; i++);
+        info->comment = xmalloc(sizeof(char *) * (i+1));
+        for(i = 0; com->desc[i] != NULL; i++) info->comment[i] = scopy(com->desc[i]);
+        info->comment[i] = NULL;
       }
       if (p == (ne-1)) dl = (struct _info **)xrealloc(dl,sizeof(struct _info *) * (ne += MINC));
       dl[p++] = info;
